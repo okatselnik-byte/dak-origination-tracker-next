@@ -40,7 +40,12 @@ export default function AuthPage() {
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword(values)
-        : await supabase.auth.signUp(values);
+        : await supabase.auth.signUp({
+            ...values,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          });
 
     setIsSubmitting(false);
 
