@@ -2,12 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { User } from "@supabase/supabase-js";
-import { CheckCircle2, Loader2, LogOut, Mail, Pencil, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle2, Database, Loader2, LogOut, Pencil, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 
 type Item = {
@@ -164,157 +169,154 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-muted/40 text-sm text-muted-foreground">
         <Loader2 className="mr-2 size-4 animate-spin" /> Loading dashboard...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-56 flex-col border-r border-slate-200 bg-white md:flex">
-        <div className="flex h-14 items-center gap-3 border-b border-slate-200 px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1B2A4A] text-white">
-            <Mail className="h-4 w-4" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold tracking-tight text-slate-900">Dak Tracker</h1>
-            <p className="text-[10px] uppercase tracking-widest text-slate-400">Bravo Capital</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          <div className="flex w-full items-center gap-2.5 rounded-lg bg-[#1B2A4A] px-3 py-2 text-[13px] font-medium text-white">
-            <CheckCircle2 className="size-4" /> Items
-          </div>
-        </nav>
-
-        <div className="border-t border-slate-200 px-4 py-3">
-          <div className="text-[11px] font-medium text-slate-500">Signed in</div>
-          <div className="truncate text-[11px] text-slate-400">{user?.email}</div>
-        </div>
-      </aside>
-
-      <main className="min-h-screen p-4 md:ml-56 md:p-6">
-        <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Protected Items</h2>
-            <p className="mt-0.5 text-[13px] text-slate-500">
-              Create, list, edit, and delete one simple item type owned by {user?.email}.
-            </p>
-          </div>
-          <Button className="gap-2 self-start" onClick={logout} variant="outline">
-            <LogOut className="size-4" /> Logout
-          </Button>
-        </header>
-
-        <section className="grid gap-4 lg:grid-cols-[380px_1fr]">
-          <form
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-            onSubmit={form.handleSubmit(saveItem)}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  {editingItem ? "Edit item" : "Create item"}
-                </h3>
-                <p className="mt-1 text-xs text-slate-500">Rows are protected by user-owned RLS.</p>
+    <main className="min-h-screen bg-muted/40 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <Card className="border-border/70 bg-card shadow-sm">
+          <CardHeader className="gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="gap-1.5" variant="secondary">
+                  <CheckCircle2 className="size-3.5" /> Authenticated
+                </Badge>
+                <Badge variant="outline">RLS protected</Badge>
               </div>
-              {editingItem ? (
-                <button
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                  onClick={cancelEdit}
-                  type="button"
-                >
-                  <X className="size-4" />
-                </button>
+              <div>
+                <CardTitle className="text-2xl font-semibold tracking-tight">Protected Items</CardTitle>
+                <CardDescription className="mt-1">
+                  Create, list, edit, and delete items owned by your logged-in Supabase user.
+                </CardDescription>
+              </div>
+            </div>
+            <CardAction className="flex items-center gap-2">
+              <Button className="gap-2" onClick={loadItems} type="button" variant="outline">
+                <RefreshCw className="size-4" /> Refresh
+              </Button>
+              <Button className="gap-2" onClick={logout} variant="outline">
+                <LogOut className="size-4" /> Logout
+              </Button>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Signed in as</div>
+                <div className="truncate font-medium text-foreground">{user?.email}</div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Database className="size-4" /> {items.length} visible item{items.length === 1 ? "" : "s"}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          <Card className="h-fit border-border/70 bg-card shadow-sm">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle>{editingItem ? "Edit item" : "Create item"}</CardTitle>
+                  <CardDescription className="mt-1">One simple owned row in Supabase.</CardDescription>
+                </div>
+                {editingItem ? (
+                  <Button onClick={cancelEdit} size="icon" type="button" variant="ghost">
+                    <X className="size-4" />
+                  </Button>
+                ) : null}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={form.handleSubmit(saveItem)}>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground" htmlFor="title">
+                    Title
+                  </label>
+                  <Input id="title" placeholder="Example: Call broker Friday" {...form.register("title")} />
+                  {form.formState.errors.title ? (
+                    <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground" htmlFor="notes">
+                    Notes
+                  </label>
+                  <Textarea id="notes" className="min-h-28 resize-none" placeholder="Optional details" {...form.register("notes")} />
+                  {form.formState.errors.notes ? (
+                    <p className="text-xs text-destructive">{form.formState.errors.notes.message}</p>
+                  ) : null}
+                </div>
+
+                <Button className="h-10 w-full gap-2" disabled={saving} type="submit">
+                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+                  {editingItem ? "Save changes" : "Create item"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>Your items</CardTitle>
+              <CardDescription>Only rows owned by this authenticated user are returned.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {error ? (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
               ) : null}
-            </div>
 
-            <label className="block text-xs font-medium text-slate-600" htmlFor="title">
-              Title
-            </label>
-            <input
-              id="title"
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10"
-              placeholder="Example: Call broker Friday"
-              {...form.register("title")}
-            />
-            {form.formState.errors.title ? (
-              <p className="mt-1 text-xs text-red-600">{form.formState.errors.title.message}</p>
-            ) : null}
+              {message ? (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  {message}
+                </div>
+              ) : null}
 
-            <label className="mt-4 block text-xs font-medium text-slate-600" htmlFor="notes">
-              Notes
-            </label>
-            <textarea
-              id="notes"
-              className="mt-1 min-h-28 w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10"
-              placeholder="Optional details"
-              {...form.register("notes")}
-            />
-            {form.formState.errors.notes ? (
-              <p className="mt-1 text-xs text-red-600">{form.formState.errors.notes.message}</p>
-            ) : null}
-
-            <Button className="mt-4 h-10 w-full gap-2 bg-[#1B2A4A] text-white hover:bg-[#25385f]" disabled={saving} type="submit">
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-              {editingItem ? "Save changes" : "Create item"}
-            </Button>
-          </form>
-
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">Your items</h3>
-                <p className="mt-1 text-xs text-slate-500">{items.length} item{items.length === 1 ? "" : "s"} visible to this user</p>
-              </div>
-              <Button onClick={loadItems} type="button" variant="outline">Refresh</Button>
-            </div>
-
-            {error ? (
-              <div className="m-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            ) : null}
-
-            {message ? (
-              <div className="m-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                {message}
-              </div>
-            ) : null}
-
-            {items.length === 0 ? (
-              <div className="px-5 py-12 text-center">
-                <p className="text-sm font-medium text-slate-700">No items yet.</p>
-                <p className="mt-1 text-xs text-slate-500">Create the first one to prove authenticated insert/select.</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {items.map((item) => (
-                  <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between" key={item.id}>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900">{item.title}</div>
-                      {item.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{item.notes}</p> : null}
-                      <p className="mt-2 text-[11px] text-slate-400">
-                        Created {new Date(item.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <Button className="gap-1" onClick={() => startEdit(item)} type="button" variant="outline">
-                        <Pencil className="size-3.5" /> Edit
-                      </Button>
-                      <Button className="gap-1 text-red-600 hover:text-red-700" onClick={() => deleteItem(item)} type="button" variant="outline">
-                        <Trash2 className="size-3.5" /> Delete
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-      </main>
-    </div>
+              {items.length === 0 ? (
+                <div className="rounded-xl border border-dashed bg-muted/30 px-6 py-12 text-center">
+                  <p className="text-sm font-medium text-foreground">No items yet.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Create the first row to prove authenticated CRUD.</p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border">
+                  <ul className="divide-y">
+                    {items.map((item) => (
+                      <li className="bg-card p-4 transition-colors hover:bg-muted/30" key={item.id}>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0 space-y-1">
+                            <div className="font-medium text-foreground">{item.title}</div>
+                            {item.notes ? <p className="whitespace-pre-wrap text-sm text-muted-foreground">{item.notes}</p> : null}
+                            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-muted-foreground">
+                              <span>Created {new Date(item.created_at).toLocaleString()}</span>
+                              <Separator className="h-3" orientation="vertical" />
+                              <span className="font-mono">{item.id.slice(0, 8)}</span>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <Button className="gap-1" onClick={() => startEdit(item)} type="button" variant="outline">
+                              <Pencil className="size-3.5" /> Edit
+                            </Button>
+                            <Button className="gap-1 text-destructive hover:text-destructive" onClick={() => deleteItem(item)} type="button" variant="outline">
+                              <Trash2 className="size-3.5" /> Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </main>
   );
 }
