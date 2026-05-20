@@ -1,10 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const fallbackSupabaseUrl = "https://ktuxenbvfstziypycxap.supabase.co";
+const fallbackSupabaseAnonKey = "sb_publishable_VnVUFySma4lg-N4vH_gYsQ_FzgnkNPc";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackSupabaseUrl;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackSupabaseAnonKey;
 
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
