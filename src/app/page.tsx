@@ -1,12 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail } from "lucide-react";
+import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 
 const authSchema = z.object({
@@ -64,68 +68,76 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#0f1a2e] via-[#1B2A4A] to-[#2a3f6b] p-6">
-      <section className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white backdrop-blur-sm">
-            <Mail className="h-7 w-7" />
+    <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-10 sm:px-6 lg:px-8">
+      <section className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Mail className="size-5" />
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Dak Origination</h1>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Bravo Capital</p>
+          <Badge className="mb-3 gap-1.5" variant="secondary">
+            <CheckCircle2 className="size-3.5" /> Supabase Auth
+          </Badge>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dak Origination</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your protected dashboard.</p>
         </div>
 
-        <form
-          className="space-y-4 rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md"
-          onSubmit={form.handleSubmit(submit)}
-        >
-          <div>
-            <input
-              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/30"
-              placeholder="Email address"
-              type="email"
-              {...form.register("email")}
-            />
-            {form.formState.errors.email ? (
-              <p className="mt-1 text-xs text-red-300">{form.formState.errors.email.message}</p>
-            ) : null}
-          </div>
+        <Card className="border-border/70 bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle>{mode === "login" ? "Welcome back" : "Create account"}</CardTitle>
+            <CardDescription>
+              {mode === "login"
+                ? "Use your confirmed Supabase user to continue."
+                : "Create a Supabase account. Email confirmation may be required."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={form.handleSubmit(submit)}>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="email">
+                  Email
+                </label>
+                <Input id="email" placeholder="you@example.com" type="email" {...form.register("email")} />
+                {form.formState.errors.email ? (
+                  <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+                ) : null}
+              </div>
 
-          <div>
-            <input
-              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/30"
-              placeholder="Password"
-              type="password"
-              {...form.register("password")}
-            />
-            {form.formState.errors.password ? (
-              <p className="mt-1 text-xs text-red-300">{form.formState.errors.password.message}</p>
-            ) : null}
-          </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="password">
+                  Password
+                </label>
+                <Input id="password" placeholder="••••••••" type="password" {...form.register("password")} />
+                {form.formState.errors.password ? (
+                  <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
+                ) : null}
+              </div>
 
-          {status ? (
-            <div className="rounded-lg bg-white/10 px-3 py-2 text-xs text-slate-200">{status}</div>
-          ) : null}
+              {status ? (
+                <div className="rounded-lg border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">{status}</div>
+              ) : null}
 
-          <Button
-            className="h-11 w-full rounded-xl bg-white text-sm font-semibold text-[#1B2A4A] hover:bg-slate-100"
-            disabled={isSubmitting}
-            type="submit"
-          >
-            {isSubmitting ? "Working..." : mode === "login" ? "Sign In" : "Create Account"}
-          </Button>
-        </form>
+              <Button className="h-10 w-full gap-2" disabled={isSubmitting} type="submit">
+                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                {isSubmitting ? "Working..." : mode === "login" ? "Sign In" : "Create Account"}
+              </Button>
+            </form>
 
-        <button
-          className="mt-6 w-full text-center text-xs text-slate-400 hover:text-white"
-          onClick={() => {
-            setMode(mode === "login" ? "signup" : "login");
-            setStatus(null);
-            form.clearErrors();
-          }}
-          type="button"
-        >
-          {mode === "login" ? "Need an account? Sign up" : "Already have an account? Log in"}
-        </button>
+            <Separator className="my-5" />
+
+            <Button
+              className="w-full"
+              onClick={() => {
+                setMode(mode === "login" ? "signup" : "login");
+                setStatus(null);
+                form.clearErrors();
+              }}
+              type="button"
+              variant="ghost"
+            >
+              {mode === "login" ? "Need an account? Sign up" : "Already have an account? Log in"}
+            </Button>
+          </CardContent>
+        </Card>
       </section>
     </main>
   );
